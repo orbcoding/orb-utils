@@ -1,2 +1,2 @@
-# orb-cli-utils
+# orb-cli-namespace-utils
 orb-cli utils namespace
