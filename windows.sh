@@ -1,15 +1,47 @@
 # Position window
 declare -A position_window_args=(
-  ['-t arg']='title'
+  ['-t arg']='title; REQUIRED'
   ['-p arg']='grid position; IN: fullscreen|left|right'
+  ['-w arg']='workspace'
+  ['-r']='retry; DEFAULT: true'
+  ['-R']='retry timeout sec; DEFAULT: 5'
+  ['-I']='retry interval; DEFAULT: 0.3'
 ); function position_window() {
-  title="${_args["-t arg"]}"
-  position="${_args["-p arg"]}"
+  local title="${_args["-t arg"]}"
+  local position="${_args["-p arg"]}"
+  local workspace="${_args["-w arg"]}"
+  local timeout=${_args[-R]}
+  local interval=${_args[-I]}
+  local cmd=( wmctrl -r "$title" )
 
+  local timer=0
+  while [[ timer < $timeout ]] && ! _args_to orb window_exists -- -t; do
+    timer+=$interval
+    sleep "${interval}s"
+  done
+
+  [[ "$timer" -gt "$timeout" ]] && return
+
+  if [[ -n "$workspace" ]]; then
+    workspace_cmd=( "${cmd[@]}" -t "$workspace" )
+    "${workspace_cmd[@]}"
+  fi
+
+  if [[ -n $position ]]; then
+    position_cmd=( "${cmd[@]}" $(wmctrl_position_param) )
+    "${position_cmd[@]}"
+  fi
+}
+
+
+wmctrl_position_param() {
   [[ -n "$title" ]] && window_id=$(xdotool search --name "$title")
-  [[ -z "$window_id" || -z "$position" ]] && return
 
+  [[ "$position" == "fullscreen" ]] && echo "-b toggle,fullscreen" && return
+
+  # Else calculate left/right
   window=$(xwininfo -id "$window_id")
+  
   window_x_left=$(echo -e "$window" | grep "Absolute upper-left X" | grep "Absolute upper-left X" | awk '{print $NF}')
   screens=$(xrandr | grep -w connected  | sed 's/primary //' | awk -F'[ +]' '{print $1,$3,$4}')
   screens_nr=$(echo "$screens" | wc -l)
@@ -36,22 +68,16 @@ declare -A position_window_args=(
   hh=$(( $h / 2 ))
 
   case "$position" in
-    'fullscreen')
-      grid_cmd=( wmctrl -r "$title" -b toggle,fullscreen )
-      ;;
-
     'left')
       pos_x=$screen_x_left
-      grid_cmd=( wmctrl -r "$title" -e 0,$pos_x,0,$wh,$h )
+      echo "-e 0,$pos_x,0,$wh,$h"
       ;;
 
     'right')
       pos_x=$(( $screen_x_left + $screen_width / 2 ))
-      grid_cmd=( wmctrl -r "$title" -e 0,$pos_x,0,$wh,$h )
+      echo "-e 0,$pos_x,0,$wh,$h"
       ;;
   esac
-
-  "${grid_cmd[@]}"
 }
 
 
@@ -62,4 +88,11 @@ declare -A kill_windows_args=(
   for window in ${_args_wildcard[@]}; do
     wmctrl -c "$window" # > /dev/null 2>&1
   done
+}
+
+
+declare -A window_exists_args=(
+  ['-t arg']='title; REQUIRED'
+); function window_exists() {
+  [[ $(wmctrl -l | grep "${_args["-t arg"]}" 2>&1 | wc -l) > 0 ]]
 }

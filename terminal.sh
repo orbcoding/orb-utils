@@ -1,42 +1,31 @@
 # Terminal
 declare -A terminal_args=(
   ['-C arg']='terminal cmd; DEFAULT: $TERMINAL_CMD'
+  ['-x arg']='terminal exec shell; DEFAULT: $TERMINAL_EXEC_SHELL'
   ['-X arg']='terminal exec flag; DEFAULT: $TERMINAL_EXEC_FLAG'
-  ['-t arg']='terminal title'
   ['-T arg']='terminal title flag; DEFAULT: $TERMINAL_TITLE_FLAG'
+  ['-t arg']='terminal title'
+  ['-p arg']='terminal grid position; IN: fullscreen|left|right'
   ['-w arg']='terminal workspace, moved by wmctrl, requires title arg; DEFAULT: $TERMINAL_DEFAULT_WORKSPACE'
-  ['-p arg']='grid position; IN: fullscreen|left|right'
-  ['-f arg']='fallback command; DEFAULT: exec $TERMINAL_FALLBACK_SHELL'
-  ['-c arg']='cmd, needs to be a string'
+  ['-f arg']='terminal fallback command after exit; DEFAULT: $TERMINAL_FALLBACK_CMD'
+  ['-F arg']='terminal fallback command after exit with title; DEFAULT: $TERMINAL_FALLBACK_CMD_TITLED'
+  ['-- *']='cmd, interpreted as single string'
 ); function terminal() {
-  cmd=( ${_args["-C arg"]} ) # terminal cmd
+  local cmd=( ${_args["-C arg"]} ) # terminal cmd
 
-  if [[ -n ${_args[-t arg]} && -n ${_args["-T arg"]} ]]; then
+  has_title() { [[ -n ${_args["-t arg"]} && -n ${_args["-T arg"]} ]]; }
+
+  # Add title
+  if has_title; then
     cmd+=( ${_args["-T arg"]} "${_args[-t arg]}" )
   fi
 
-  # exec flag + cmd
-  cmd+=( ${_args["-X arg"]} /bin/bash -c "${_args[-c arg]}; ${_args["-f arg"]}" )
-
-  # workspace, requires title
-  if [[ -n ${_args["-w arg"]} && -n ${_args["-T arg"]} && -n ${_args["-t arg"]} ]]; then
-    wmctrl_cmd=( wmctrl -r ${_args["-t arg"]} -t ${_args["-w arg"]} )
-  fi
+  # exec prefix and user command
+  cmd+=(${_args["-X arg"]} ${_args["-x arg"]} -c)
+  local user_cmd=("${_args_dash_wildcard[*]};")
+  has_title && user_cmd+=("${_args["-F arg"]}") || user_cmd+=("${_args["-f arg"]}")
+  cmd+=("${user_cmd[*]}")
 
   "${cmd[@]}"
-  sleep 2s
-  "${wmctrl_cmd[@]}"
-  _args_to orb utils position_window -- -tp
+  _args_to orb utils position_window -- -twp
 }
-
-
-
-# declare -A terminal_title_args=(
-#   ['1']='title of current terminal'
-# ); function terminal_title() {
-#   # Set terminal tab title. Usage: title "new tab name"
-#   prefix=${PS1%%\\a*}                  # Everything before: \a
-#   search=${prefix##*;}                 # Eeverything after: ;
-#   esearch="${search//\\/\\\\}"         # Change \ to \\ in old title
-#   export PS1="${PS1/$esearch/$@}"             # Search and replace old with new
-# }
