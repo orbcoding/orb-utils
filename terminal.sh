@@ -22,7 +22,7 @@ declare -A terminal_args=(
 
   # exec prefix and user command
   cmd+=(${_args["-X arg"]} ${_args["-x arg"]} -c)
-  local user_cmd=("${_args_dash_wildcard[*]};")
+  local user_cmd=("${_orb_dash_wildcard[*]};")
   has_title && user_cmd+=("${_args["-F arg"]}") || user_cmd+=("${_args["-f arg"]}")
   cmd+=("${user_cmd[*]}")
 

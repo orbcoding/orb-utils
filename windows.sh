@@ -15,7 +15,7 @@ declare -A position_window_args=(
   local cmd=( wmctrl -r "$title" )
 
   local timer=0
-  while [[ $timer < $timeout ]] && ! _args_to orb window_exists -- -t; do
+  while [[ $timer < $timeout ]] && ! _args_to orb utils window_exists -- -t; do
     timer+=$interval
     sleep "${interval}s"
   done
@@ -87,12 +87,12 @@ declare -A kill_windows_args=(
   ['-R']='retry timeout sec; DEFAULT: 5'
   ['-I']='retry interval; DEFAULT: 0.3'
 ); function kill_windows() {
-  for title in "${_args_wildcard[@]}"; do
+  for title in "${_orb_wildcard[@]}"; do
     wmctrl -c "$title" > /dev/null 2>&1
   done
 
   local timer=0
-  while [[ $timer < ${_args[-R]} ]] && orb window_exists -t "$title"; do
+  while [[ $timer < ${_args[-R]} ]] && orb utils window_exists -t "$title"; do
     timer+=${_args[-I]}
     sleep "${_args[-I]}s"
   done
