@@ -15,7 +15,7 @@ declare -A position_window_args=(
   local cmd=( wmctrl -r "$title" )
 
   local timer=0
-  while [[ $timer < $timeout ]] && ! _args_to orb utils window_exists -- -t; do
+  while [[ $timer < $timeout ]] && ! orb_pass orb utils window_exists -- -t; do
     timer+=$interval
     sleep "${interval}s"
   done

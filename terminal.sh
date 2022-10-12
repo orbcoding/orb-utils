@@ -1,14 +1,14 @@
 # Terminal
 declare -A terminal_args=(
-  ['-C arg']='terminal cmd; DEFAULT: $TERMINAL_CMD'
-  ['-x arg']='terminal exec shell; DEFAULT: $TERMINAL_EXEC_SHELL'
-  ['-X arg']='terminal exec flag; DEFAULT: $TERMINAL_EXEC_FLAG'
-  ['-T arg']='terminal title flag; DEFAULT: $TERMINAL_TITLE_FLAG'
+  ['-C arg']='terminal cmd; DEFAULT: $ORB_TERMINAL_CMD'
+  ['-x arg']='terminal exec shell; DEFAULT: $ORB_TERMINAL_EXEC_SHELL'
+  ['-X arg']='terminal exec flag; DEFAULT: $ORB_TERMINAL_EXEC_FLAG'
+  ['-T arg']='terminal title flag; DEFAULT: $ORB_TERMINAL_TITLE_FLAG'
   ['-t arg']='terminal title'
   ['-p arg']='terminal grid position; IN: fullscreen|left|right'
-  ['-w arg']='terminal workspace, moved by wmctrl, requires title arg; DEFAULT: $TERMINAL_DEFAULT_WORKSPACE'
-  ['-f arg']='terminal fallback command after exit; DEFAULT: $TERMINAL_FALLBACK_CMD'
-  ['-F arg']='terminal fallback command after exit with title; DEFAULT: $TERMINAL_FALLBACK_CMD_TITLED'
+  ['-w arg']='terminal workspace, moved by wmctrl, requires title arg; DEFAULT: $ORB_TERMINAL_DEFAULT_WORKSPACE'
+  ['-f arg']='terminal fallback command after exit; DEFAULT: $ORB_TERMINAL_FALLBACK_CMD'
+  ['-F arg']='terminal fallback command after exit with title; DEFAULT: $ORB_TERMINAL_FALLBACK_CMD_TITLED'
   ['-- *']='cmd, interpreted as single string'
 ); function terminal() {
   local cmd=( ${_args["-C arg"]} ) # terminal cmd
@@ -27,5 +27,5 @@ declare -A terminal_args=(
   cmd+=("${user_cmd[*]}")
 
   "${cmd[@]}"
-  _args_to orb utils position_window -- -twp
+  orb_pass orb utils position_window -- -twp
 }
